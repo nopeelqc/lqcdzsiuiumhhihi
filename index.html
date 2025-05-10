@@ -9,13 +9,33 @@
             font-family: Arial, sans-serif;
             padding: 20px;
             background-color: #f0f8ff;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 43px;
         }
         .hidden {
             display: none;
         }
+        #menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
         button {
-            margin: 5px;
-            padding: 10px 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            min-width: 150px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #e0e0e0;
         }
         #bao-cao-form textarea {
             width: 100%;
@@ -29,19 +49,31 @@
             font-weight: bold;
             margin-top: 10px;
         }
+        #choi-game, #output, #gioi-thieu {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #mode-select-form select {
+            padding: 8px;
+            font-size: 16px;
+            margin: 10px 0;
+            width: 200px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <h1>🎮 Chào mừng đến với Game Đoán Số</h1>
 
     <div id="menu">
-        <button onclick="batDauChoi()">1. Bắt đầu chơi</button>
-        <button onclick="hienThiDanhHieu()">2. Toàn bộ danh hiệu</button>
-        <button onclick="hienThiDanhHieuSoHuu()">3. Danh hiệu đã sở hữu</button>
-        <button onclick="hienThiDonate()">4. Donate</button>
-        <button onclick="hienThiGioiThieu()">5. Giới thiệu về trò chơi</button>
-        <button onclick="hienThiBaoCao()">6. Báo cáo</button>
-        <button onclick="thoatGame()">7. Thoát</button>
+        <button onclick="batDauChoi()">Bắt đầu chơi</button>
+        <button onclick="hienThiTopDanhHieu()">Top danh hiệu</button>
+        <button onclick="hienThiDanhHieuSoHuu()">Danh hiệu đã sở hữu</button>
+        <button onclick="hienThiDanhHieu()">Toàn bộ danh hiệu</button>
+        <button onclick="hienThiDonate()">Donate</button>
+        <button onclick="hienThiGioiThieu()">Giới thiệu về trò chơi</button>
+        <button onclick="hienThiBaoCao()">Báo cáo</button>
+        <button onclick="thoatGame()">Thoát</button>
     </div>
 
     <div id="choi-game" class="hidden">
@@ -60,7 +92,7 @@
         <p>Trò chơi có ba chế độ khó: Cơ bản, Khó và Ác Mộng.</p>
         <p>Mỗi chế độ sẽ có số lượt chơi khác nhau và càng khó, số lượt càng ít.</p>
         <p>Bạn có thể nhận được các danh hiệu đặc biệt khi thắng với số lượt ít.</p>
-        <p>Hãy thử thách khả năng đoán số của bạn và chinh phục các danh hiệu!.</p>
+        <p>Hãy thử thách khả năng đoán số của bạn và chinh phục các danh hiệu!</p>
         <button onclick="veMenu()">Quay lại menu</button>
     </div>
 
