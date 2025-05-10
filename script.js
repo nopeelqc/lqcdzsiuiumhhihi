@@ -3,7 +3,7 @@ let soBiMat = 0;
 let luotToiDa = 0;
 let soLuot = 0;
 let thangCoBan = 0, thangKho = 0, thangAcMong = 0;
-let danhHieuSoHuu = [];
+let danhHieuSoHuu = JSON.parse(localStorage.getItem("danhHieuSoHuu")) || [];
 
 document.getElementById("inputDoan").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
@@ -45,18 +45,56 @@ function guiBaoCao() {
         document.getElementById("bao-cao-thanh-cong").classList.remove("hidden");
         document.getElementById("moTaLoi").value = "";
     } else {
-        alert("Vui lòng mô tả lỗi bạn gặp phải!");
+        document.getElementById("output").innerHTML = `
+            <h3>❌ Lỗi</h3>
+            <p>Vui lòng mô tả lỗi bạn gặp phải!</p>
+            <button onclick="hienThiBaoCao()">Thử lại</button>
+            <button onclick="veMenu()">Quay lại menu</button>
+        `;
     }
 }
 
 function batDauChoi() {
+    const out = document.getElementById("output");
+    out.classList.remove("hidden");
+    out.innerHTML = `
+        <h3>🎮 Chọn chế độ chơi</h3>
+        <div id="mode-select-form">
+            <p>Chọn chế độ:</p>
+            <select id="cheDoInput">
+                <option value="1">Cơ bản (8 lượt)</option>
+                <option value="2">Khó (6 lượt)</option>
+                <option value="3">Ác mộng (4 lượt)</option>
+            </select>
+            <div>
+                <button onclick="confirmCheDo()">Xác nhận</button>
+                <button onclick="veMenu()">Hủy</button>
+            </div>
+        </div>
+    `;
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("choi-game").classList.add("hidden");
+    document.getElementById("gioi-thieu").classList.add("hidden");
+}
+
+function confirmCheDo() {
+    const userInput = document.getElementById("cheDoInput").value;
+    cheDo = Number(userInput);
+
+    if (![1, 2, 3].includes(cheDo)) {
+        document.getElementById("output").innerHTML = `
+            <h3>❌ Lỗi</h3>
+            <p>Chế độ không hợp lệ!</p>
+            <button onclick="batDauChoi()">Thử lại</button>
+            <button onclick="veMenu()">Quay lại menu</button>
+        `;
+        return;
+    }
+
     document.getElementById("menu").classList.add("hidden");
     document.getElementById("choi-game").classList.remove("hidden");
     document.getElementById("output").classList.add("hidden");
     document.getElementById("gioi-thieu").classList.add("hidden");
-
-    cheDo = Number(prompt("Chọn chế độ:\n1. Cơ bản (8 lượt)\n2. Khó (6 lượt)\n3. Ác mộng (4 lượt)"));
-    if (![1, 2, 3].includes(cheDo)) return alert("Chế độ không hợp lệ!");
 
     if (cheDo === 1) luotToiDa = 8;
     if (cheDo === 2) luotToiDa = 6;
@@ -74,8 +112,15 @@ function batDauChoi() {
 
 function doanSo() {
     const doan = Number(document.getElementById("inputDoan").value);
-    if (isNaN(doan) || doan < 1 || doan > 100) {
-        alert("Vui lòng nhập số từ 1 đến 100");
+    if (isNaN(doan) || doan <= 0 || doan > 100) {
+        document.getElementById("output").classList.remove("hidden");
+        document.getElementById("choi-game").classList.add("hidden");
+        document.getElementById("output").innerHTML = `
+            <h3>❌ Lỗi</h3>
+            <p>Vui lòng nhập số từ 1 đến 100!</p>
+            <button onclick="confirmCheDo()">Thử lại</button>
+            <button onclick="veMenu()">Quay lại menu</button>
+        `;
         return;
     }
 
@@ -84,26 +129,44 @@ function doanSo() {
     document.getElementById("luotConLai").textContent = conLai;
 
     if (doan === soBiMat) {
-        document.getElementById("ketQua").textContent = `🎉 Chính xác sau ${soLuot} lượt!`;
         let tong = 0;
         if (cheDo === 1) tong = ++thangCoBan;
         if (cheDo === 2) tong = ++thangKho;
         if (cheDo === 3) tong = ++thangAcMong;
         const danhHieu = layDanhHieu(cheDo, tong);
+        let thongBaoDanhHieu = "";
         if (danhHieu && !danhHieuSoHuu.includes(danhHieu)) {
             danhHieuSoHuu.push(danhHieu);
-            document.getElementById("ketQua").textContent += `\n🏅 Nhận được danh hiệu: ${danhHieu}`;
+            localStorage.setItem("danhHieuSoHuu", JSON.stringify(danhHieuSoHuu));
+            thongBaoDanhHieu = `<br>🏅 Nhận được danh hiệu: ${danhHieu}`;
         }
-        setTimeout(veMenu, 3000);
+        document.getElementById("choi-game").classList.add("hidden");
+        document.getElementById("output").classList.remove("hidden");
+        document.getElementById("output").innerHTML = `
+            <h3>🎉 Chúc mừng!</h3>
+            <p>Bạn đã đoán đúng số ${soBiMat} sau ${soLuot} lượt!${thongBaoDanhHieu}</p>
+            <button onclick="choiTiep()">Chơi tiếp</button>
+            <button onclick="veMenu()">Về menu</button>
+        `;
     } else if (soLuot >= luotToiDa) {
-        document.getElementById("ketQua").textContent = `😢 Hết lượt! Số đúng là ${soBiMat}`;
-        setTimeout(veMenu, 3000);
+        document.getElementById("choi-game").classList.add("hidden");
+        document.getElementById("output").classList.remove("hidden");
+        document.getElementById("output").innerHTML = `
+            <h3>😢 Thua cuộc!</h3>
+            <p>Hết lượt! Số đúng là ${soBiMat}</p>
+            <button onclick="choiTiep()">Chơi tiếp</button>
+            <button onclick="veMenu()">Về menu</button>
+        `;
     } else {
         document.getElementById("ketQua").textContent = doan < soBiMat ? "📈 Lớn hơn!" : "📉 Nhỏ hơn!";
+        document.getElementById("inputDoan").value = "";
+        document.getElementById("inputDoan").focus();
     }
+}
 
-    document.getElementById("inputDoan").value = "";
-    document.getElementById("inputDoan").focus();
+function choiTiep() {
+    document.getElementById("output").classList.add("hidden");
+    batDauChoi();
 }
 
 function veMenu() {
@@ -133,31 +196,29 @@ function layDanhHieu(cheDo, soLan) {
     return "";
 }
 
-function hienThiDanhHieu() {
+function hienThiTopDanhHieu() {
     const out = document.getElementById("output");
     out.classList.remove("hidden");
+    const topPlayers = [
+        { name: "vợ mh", titles: 12 },
+        { name: "nopee", titles: 12 },
+        { name: "qhuyzz", titles: 5 },
+        { name: "danghaigs", titles: 5 },
+        { name: "nhiepff", titles: 3 }
+    ];
     out.innerHTML = `
-        <h3>🏆 Tất cả danh hiệu:</h3>
+        <h3>🏆 Top danh hiệu</h3>
         <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
             <tr>
-                <th>Chế độ</th>
-                <th>Danh hiệu</th>
-                <th>Điều kiện</th>
+                <th>Tên người chơi</th>
+                <th>Số danh hiệu đạt được</th>
             </tr>
-            <tr><td rowspan="4"><b>Cơ bản</b></td><td>Tân thủ nhân phẩm</td><td>Thắng trong 1 lượt</td></tr>
-            <tr><td>Tân binh toàn năng</td><td>Thắng trong 2 lượt</td></tr>
-            <tr><td>Tân thủ</td><td>Thắng trong 3-5 lượt</td></tr>
-            <tr><td>Tân thủ nghị lực</td><td>Thắng trong 6-8 lượt</td></tr>
-
-            <tr><td rowspan="4"><b>Khó</b></td><td>Tiên tri</td><td>Thắng trong 1 lượt</td></tr>
-            <tr><td>Siêu phàm</td><td>Thắng trong 2 lượt</td></tr>
-            <tr><td>Đồ Tể</td><td>Thắng trong 3-4 lượt</td></tr>
-            <tr><td>Kẻ chinh phục</td><td>Thắng trong 5-6 lượt</td></tr>
-
-            <tr><td rowspan="4"><b>Ác mộng</b></td><td>Tân Thần</td><td>Thắng trong 1 lượt</td></tr>
-            <tr><td>Á Thần</td><td>Thắng trong 2 lượt</td></tr>
-            <tr><td>Ngụy Thần</td><td>Thắng trong 3 lượt</td></tr>
-            <tr><td>Não To</td><td>Thắng trong 4 lượt</td></tr>
+            ${topPlayers.map(player => `
+                <tr>
+                    <td>${player.name}</td>
+                    <td>${player.titles}</td>
+                </tr>
+            `).join('')}
         </table>
         <button onclick="veMenu()">Quay lại menu</button>
     `;
@@ -179,14 +240,65 @@ function hienThiDanhHieuSoHuu() {
     document.getElementById("gioi-thieu").classList.add("hidden");
 }
 
-function hienThiDonate() {
+function hienThiDanhHieu() {
     const out = document.getElementById("output");
     out.classList.remove("hidden");
     out.innerHTML = `
+        <h3>🏆 Tất cả danh hiệu:</h3>
+        <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
+            <tr>
+                <th>Chế độ</th>
+                <th>Danh hiệu</th>
+                <th>Điều kiện</th>
+            </tr>
+            <tr><td rowspan="4"><b>Cơ bản</b></td><td>Tân thủ nhân phẩm</td><td>Thắng trong 1 lượt</td></tr>
+            <tr><td>Tân binh toàn năng</td><td>Thắng trong 2 lượt</td></tr>
+            <tr><td>Tân thủ</td><td>Thắng trong 3-5 lượt</td></tr>
+            <tr><td>Tân thủ nghị lực</td><td>Thắng trong 6-8 lượt</td></tr>
+            <tr><td rowspan="4"><b>Khó</b></td><td>Tiên tri</td><td>Thắng trong 1 lượt</td></tr>
+            <tr><td>Siêu phàm</td><td>Thắng trong 2 lượt</td></tr>
+            <tr><td>Đồ Tể</td><td>Thắng trong 3-4 lượt</td></tr>
+            <tr><td>Kẻ chinh phục</td><td>Thắng trong 5-6 lượt</td></tr>
+            <tr><td rowspan="4"><b>Ác mộng</b></td><td>Tân Thần</td><td>Thắng trong 1 lượt</td></tr>
+            <tr><td>Á Thần</td><td>Thắng trong 2 lượt</td></tr>
+            <tr><td>Ngụy Thần</td><td>Thắng trong 3 lượt</td></tr>
+            <tr><td>Não To</td><td>Thắng trong 4 lượt</td></tr>
+        </table>
+        <button onclick="veMenu()">Quay lại menu</button>
+    `;
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("choi-game").classList.add("hidden");
+    document.getElementById("gioi-thieu").classList.add("hidden");
+}
+
+function hienThiDonate() {
+    const out = document.getElementById("output");
+    out.classList.remove("hidden");
+    const topDonors = [
+        { name: "vợ mh", amount: 10000000 },
+        { name: "danghaigs", amount: 3000000 },
+        { name: "nhiepff", amount: 2200000 },
+        { name: "qhuyzz", amount: 2300000 },
+        { name: "nopee", amount: 1000000 }
+    ];
+    out.innerHTML = `
         <h3>💖 Ủng hộ nhà phát triển</h3>
-        <p>STK: <b>40004032006</b> - TPBank - <b>Luong Quoc Cuong</b></p>
+        <p>STK: <b>40004032006</b> - TPBank - <b>Lương Quốc Cường</b></p>
+        <p>Hoặc đôi khi chỉ cần 1 follow qua trang facebook : <a href="https://www.facebook.com/Nopeedepptryy" target="_blank">https://www.facebook.com/Nopeedepptryy</a> để nhận các thông báo mới nhất</p>
         <p>Chân thành cảm ơn sự ủng hộ của bạn!</p>
-        <p>Hoặc đôi khi chỉ cần 1 follow qua trang facebook : <a href="https://www.facebook.com/Nopeedepptryy" target="_blank">https://www.facebook.com/Nopeedepptryy</a> de nhan cac  thong bao moi nhat</p>
+        <h3>🏅 Top người ủng hộ</h3>
+        <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
+            <tr>
+                <th>Tên người ủng hộ</th>
+                <th>Tổng số tiền ủng hộ (VND)</th>
+            </tr>
+            ${topDonors.map(donor => `
+                <tr>
+                    <td>${donor.name}</td>
+                    <td>${donor.amount.toLocaleString()}</td>
+                </tr>
+            `).join('')}
+        </table>
         <button onclick="veMenu()">Quay lại menu</button>
     `;
     document.getElementById("menu").classList.add("hidden");
@@ -195,6 +307,20 @@ function hienThiDonate() {
 }
 
 function thoatGame() {
-    alert("Hẹn gặp lại bạn!");
+    const out = document.getElementById("output");
+    out.classList.remove("hidden");
+    out.innerHTML = `
+        <h3>👋 Xác nhận thoát</h3>
+        <p>Bạn có chắc muốn thoát? Danh hiệu đã sở hữu sẽ bị xóa!</p>
+        <button onclick="confirmThoat()">Xác nhận</button>
+        <button onclick="veMenu()">Hủy</button>
+    `;
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("choi-game").classList.add("hidden");
+    document.getElementById("gioi-thieu").classList.add("hidden");
+}
+
+function confirmThoat() {
+    localStorage.removeItem("danhHieuSoHuu");
     location.reload();
 }
